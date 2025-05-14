@@ -4,14 +4,16 @@ from .serializers import ServiceRequestSerializer
 
 class IsSupportRep(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.is_support_rep
+        return request.user.is_authenticated and request.user.role == 'support'
 
 class ServiceRequestViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceRequestSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        if user.is_support_rep:
+        # Support reps see all, customers only see their own
+        if user.role == 'support':
             return ServiceRequest.objects.all()
         return ServiceRequest.objects.filter(user=user)
 
